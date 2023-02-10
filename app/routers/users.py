@@ -1,16 +1,23 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+from typing import Union
+
+from ..database import get_db
+from ..schemas import User, UserCreate
+
+router = APIRouter(
+    prefix="/users",
+    tags=["Users"]
+)
 
 
-router = APIRouter()
-
-
-@router.get("/{id}")
-def get_user(id: int):
+@router.get("/{id}", response_model=User)
+def get_user(id: int, db: Session = Depends(get_db)):
     pass
 
 
 @router.post("/")
-def post_user():
+def post_user(user: UserCreate, db: Session = Depends(get_db)):
     pass
 
 

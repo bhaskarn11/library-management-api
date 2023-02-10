@@ -1,7 +1,8 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Date, Enum
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Date, Enum, Table
+from sqlalchemy.orm import relationship, mapped_column, Mapped
 from .database import Base
 
+from typing import List
 import enum
 
 
@@ -36,6 +37,14 @@ class User(Base):
 #     id = Column(Integer, primary_key=True, index=True)
 
 
+authors_items = Table(
+    "authors_items",
+    Base.metadata,
+    Column("author_id", ForeignKey("authors.id")),
+    Column("item_id", ForeignKey("items.id"))
+)
+
+
 class Item(Base):
     __tablename__ = "items"
 
@@ -48,14 +57,23 @@ class Item(Base):
     available = Column(Boolean, default=True)
     type = Column(Enum(ItemTypes, name="ItemTypes", create_constraint=True))
 
+    authors: Mapped[List["Author"]] = relationship(secondary=authors_items, back_populates="items")
 
-# class Author(Base):
-#     __tablename__ = "authors"
-#
-#     id = Column(Integer, primary_key=True, index=True)
-#     name = Column(String)
-#
-#     books = relationship("Book", back_populates="")
+
+class Author(Base):
+    __tablename__ = "authors"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String)
+    items: Mapped[List[Item]] = relationship(secondary=authors_items, back_populates="authors")
+
+
+borrows_items_association = Table(
+    "borrows_items",
+    Base.metadata,
+    Column("borrow_id", ForeignKey("borrows.id")),
+    Column("item_id", ForeignKey("items.id"))
+)
 
 
 class Borrow(Base):
@@ -64,9 +82,14 @@ class Borrow(Base):
     id = Column(Integer, primary_key=True, index=True)
     issue_date = Column(Date)
     due_date = Column(Date)
-    item_id = Column(Integer, ForeignKey("items.id"))
-    items = relationship("Item")
+    items: Mapped[List[Item]] = relationship(secondary=borrows_items_association)
     issuer_id = Column(Integer, ForeignKey("users.id"))
     borrower_id = Column(Integer, ForeignKey("users.id"))
 
     borrower = relationship("User", back_populates="borrows")
+
+
+class AvailableItem(Base):
+    __tablename__ = "available_items"
+
+    item_id = mapped_column(ForeignKey("items.id"), primary_key=True)
