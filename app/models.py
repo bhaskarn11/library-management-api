@@ -28,6 +28,7 @@ class User(Base):
     hashed_password = Column(String)
     join_date = Column(Date)
     type = Column(Enum(UserTypes, name="UserTypes", create_constraint=True))
+    disabled = Column(Boolean, default=False)
 
     borrows = relationship("Borrow", back_populates="borrower")
 
@@ -83,7 +84,7 @@ class Borrow(Base):
     issue_date = Column(Date)
     due_date = Column(Date)
     items: Mapped[List[Item]] = relationship(secondary=borrows_items_association)
-    issuer_id = Column(Integer, ForeignKey("users.id"))
+    # issuer_id = Column(Integer, ForeignKey("users.id"))
     borrower_id = Column(Integer, ForeignKey("users.id"))
 
     borrower = relationship("User", back_populates="borrows")

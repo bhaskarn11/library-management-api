@@ -52,16 +52,18 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str
-    join_date: date
 
 
-class UserUpdate(UserBase):
-    password: str
+class UserUpdate(BaseModel):
+    name: Union[str, None]
+    username: Union[str, None]
+    type: Union[str, None]
 
 
 class User(UserBase):
     id: int
     join_date: date
+    disabled: bool
     borrows: List[Borrow] = []
 
     class Config:
