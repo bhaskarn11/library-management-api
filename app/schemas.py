@@ -1,6 +1,15 @@
 from pydantic import BaseModel
 from typing import Union, List
 from datetime import date
+from enum import Enum
+
+
+class AuthorBase(BaseModel):
+    name: str
+
+
+class Author(AuthorBase):
+    id: int
 
 
 class ItemBase(BaseModel):
@@ -9,29 +18,39 @@ class ItemBase(BaseModel):
     isbn: str
     publisher: str
     type: str
-    available: bool
 
 
 class ItemCreate(ItemBase):
-    pass
+    available: bool = True
+    publish_date: date = '2022-02-01'
+    authors: List[AuthorBase] = []
+
 
 
 class ItemUpdate(ItemBase):
-    pass
+    title: Union[str, None]
+    isbn: Union[str, None]
+    publisher: Union[str, None]
+    type: Union[str, None]
 
 
 class Item(ItemBase):
     id: int
     publish_date: date
-
+    type: Enum
+    available: bool
+    authors: List[Author] = []
     class Config:
         orm_mode = True
 
 
+class BorrowItem(BaseModel):
+    item_id: int
+
 class BorrowCreate(BaseModel):
-    issuer_id: int
+    
     borrower_id: int
-    items: List[Item]
+    items: List[BorrowItem]
 
 
 class Borrow(BaseModel):
@@ -64,6 +83,7 @@ class User(UserBase):
     id: int
     join_date: date
     disabled: bool
+    type: Enum
     borrows: List[Borrow] = []
 
     class Config:

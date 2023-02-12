@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Date, Enum, Table
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, DateTime, Enum, Table
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 from .database import Base
 
@@ -26,8 +26,8 @@ class User(Base):
     name = Column(String)
     username = Column(String, unique=True, index=True)
     hashed_password = Column(String)
-    join_date = Column(Date)
-    type = Column(Enum(UserTypes, name="UserTypes", create_constraint=True))
+    join_date = Column(DateTime)
+    type = Column(Enum(UserTypes, name="UserTypes", create_constraint=True, native_enum=False))
     disabled = Column(Boolean, default=False)
 
     borrows = relationship("Borrow", back_populates="borrower")
@@ -53,10 +53,10 @@ class Item(Base):
     title = Column(String)
     description = Column(String, nullable=True)
     isbn = Column(String, nullable=True, unique=True)
-    publish_date = Column(Date)
+    publish_date = Column(DateTime)
     publisher = Column(String)
     available = Column(Boolean, default=True)
-    type = Column(Enum(ItemTypes, name="ItemTypes", create_constraint=True))
+    type = Column(Enum(ItemTypes, name="ItemTypes", create_constraint=True, native_enum=False))
 
     authors: Mapped[List["Author"]] = relationship(secondary=authors_items, back_populates="items")
 
@@ -65,7 +65,7 @@ class Author(Base):
     __tablename__ = "authors"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String)
+    name = Column(String, unique=True)
     items: Mapped[List[Item]] = relationship(secondary=authors_items, back_populates="authors")
 
 
@@ -81,8 +81,8 @@ class Borrow(Base):
     __tablename__ = "borrows"
 
     id = Column(Integer, primary_key=True, index=True)
-    issue_date = Column(Date)
-    due_date = Column(Date)
+    issue_date = Column(DateTime)
+    due_date = Column(DateTime)
     items: Mapped[List[Item]] = relationship(secondary=borrows_items_association)
     # issuer_id = Column(Integer, ForeignKey("users.id"))
     borrower_id = Column(Integer, ForeignKey("users.id"))

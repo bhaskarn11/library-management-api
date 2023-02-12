@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from app import models, schemas
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from passlib.context import CryptContext
 
@@ -38,6 +38,55 @@ def update_user(db: Session, user: schemas.UserUpdate, id: int):
 
 def remove_user_by_id(db: Session, id: int):
     db_user = db.query(models.User).filter_by(id=id)
-    db_user.delete(synchronize_session=True)
+    db_user.delete()
     db.commit()
     return db_user
+
+
+def get_item_by_id(id: int, db: Session):
+    db_user = db.query(models.User).filter_by(id=id).first()
+    return db_user
+
+
+def create_item(item: schemas.ItemCreate, db: Session):
+    db_item = models.Item(title=item.title, type=item.type, isbn=item.isbn, publisher=item.publisher)
+    db_item.publish_date = datetime.fromisoformat(item.publish_date)
+    db.add(db_item)
+    db.commit()
+    db.refresh(db_item)
+    return db_item
+
+def update_item(item: schemas.ItemUpdate, db: Session):
+    db_item = db.query(models.Item).filter_by(id=id).first()
+    db_item.title = item.title if item.title else db_item.title
+    db_item.description = item.description if item.description else db_item.description
+    db_item.isbn = item.isbn if item.isbn else db_item.isbn
+    db_item.type = item.type if item.type else db_item.type
+    db_item.publisher = item.publisher if item.publisher else db_item.publisher
+
+    db.commit()
+    db.refresh(db_item)
+    return db_item
+
+
+def remove_item(id: int, db: Session):
+    i = db.query(models.Item).filter_by(id=id)
+    i.delete()
+    db.commit()
+    db.refresh()
+    return i
+
+def create_borrow(borrow: schemas.BorrowCreate, db: Session):
+    item_ids = [item.item_id for item in borrow.items] # only five items are allowd
+    items = db.query(models.Item).filter(models.Item.id.in_(item_ids), models.Item.available == True).limit(5)
+    if len(items) != []:
+        t = datetime.utcnow()
+        db_borrow = models.Borrow(borrower_id=borrow.borrower_id, itmes=items)
+        db_borrow.issue_date = t
+        db_borrow.due_date = t + timedelta(days=15)
+        db.add(db_borrow)
+        db.commit()
+        db.refresh(db_borrow)
+        return db_borrow
+    else:
+        raise Exception(message="Items Unavailable")

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import Union
 from fastapi.security import OAuth2PasswordRequestForm
@@ -16,7 +16,14 @@ router = APIRouter(
 
 @router.get("/{id}", response_model=schemas.User, tags=["Users"])
 def get_user(id: int, db: Session = Depends(get_db)):
-    return get_user_by_id(db, id)
+    try:
+        user = get_user_by_id(db, id)
+        if user:
+            return user
+        return HTTPException(status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        # print(e.with_traceback())
+        return HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @router.post("/", tags=["Users"])
