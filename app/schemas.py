@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from typing import Union, List
 from datetime import date
 from enum import Enum
-
+from app.models import ItemTypes
 
 class AuthorBase(BaseModel):
     name: str
@@ -17,29 +17,27 @@ class ItemBase(BaseModel):
     description: Union[str, None]
     isbn: str
     publisher: str
-    type: str
+    type: ItemTypes
 
 
 class ItemCreate(ItemBase):
     available: bool = True
     publish_date: date = '2022-02-01'
-    authors: List[AuthorBase] = []
-
+    author: str
 
 
 class ItemUpdate(ItemBase):
     title: Union[str, None]
     isbn: Union[str, None]
     publisher: Union[str, None]
-    type: Union[str, None]
+    type: Union[ItemTypes, None]
 
 
 class Item(ItemBase):
     id: int
     publish_date: date
-    type: Enum
-    available: bool
-    authors: List[Author] = []
+    available: bool = True
+    author: Union[str, None]
     class Config:
         orm_mode = True
 

@@ -27,23 +27,25 @@ class User(Base):
     username = Column(String, unique=True, index=True)
     hashed_password = Column(String)
     join_date = Column(DateTime)
-    type = Column(Enum(UserTypes, name="UserTypes", create_constraint=True, native_enum=False))
+    type = Column(Enum(UserTypes, name="UserTypes", create_constraint=True))
     disabled = Column(Boolean, default=False)
 
     borrows = relationship("Borrow", back_populates="borrower")
 
 
-# class Borrower(Base):
-#     __tablename__ = "borrowers"
+# authors_items = Table(
+#     "authors_items",
+#     Base.metadata,
+#     Column("author_id", ForeignKey("authors.id")),
+#     Column("item_id", ForeignKey("items.id"))
+# )
+
+
+# class Author(Base):
+#     __tablename__ = "authors"
+
 #     id = Column(Integer, primary_key=True, index=True)
-
-
-authors_items = Table(
-    "authors_items",
-    Base.metadata,
-    Column("author_id", ForeignKey("authors.id")),
-    Column("item_id", ForeignKey("items.id"))
-)
+#     name = Column(String, unique=True)
 
 
 class Item(Base):
@@ -56,17 +58,10 @@ class Item(Base):
     publish_date = Column(DateTime)
     publisher = Column(String)
     available = Column(Boolean, default=True)
-    type = Column(Enum(ItemTypes, name="ItemTypes", create_constraint=True, native_enum=False))
+    type = Column(Enum(ItemTypes, name="ItemTypes", create_constraint=True))
 
-    authors: Mapped[List["Author"]] = relationship(secondary=authors_items, back_populates="items")
-
-
-class Author(Base):
-    __tablename__ = "authors"
-
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True)
-    items: Mapped[List[Item]] = relationship(secondary=authors_items, back_populates="authors")
+    # authors: Mapped[List[Author]] = relationship(secondary=authors_items)
+    author = Column(String, nullable=True, index=True)
 
 
 borrows_items_association = Table(

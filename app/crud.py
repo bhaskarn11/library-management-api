@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from app import models, schemas
 from datetime import datetime, timedelta
+from typing import List
 
 from passlib.context import CryptContext
 
@@ -44,19 +45,21 @@ def remove_user_by_id(db: Session, id: int):
 
 
 def get_item_by_id(id: int, db: Session):
-    db_user = db.query(models.User).filter_by(id=id).first()
-    return db_user
+    db_item = db.query(models.Item).filter_by(id=id).first()
+    return db_item
 
 
 def create_item(item: schemas.ItemCreate, db: Session):
-    db_item = models.Item(title=item.title, type=item.type, isbn=item.isbn, publisher=item.publisher)
-    db_item.publish_date = datetime.fromisoformat(item.publish_date)
+  
+    db_item = models.Item(**item.dict())
     db.add(db_item)
     db.commit()
     db.refresh(db_item)
     return db_item
 
-def update_item(item: schemas.ItemUpdate, db: Session):
+
+def update_item(item: schemas.ItemUpdate, id, db: Session):
+    print(item)
     db_item = db.query(models.Item).filter_by(id=id).first()
     db_item.title = item.title if item.title else db_item.title
     db_item.description = item.description if item.description else db_item.description
@@ -75,6 +78,12 @@ def remove_item(id: int, db: Session):
     db.commit()
     db.refresh()
     return i
+
+
+# def add_authors(db: Session, authors: List[str]):
+#     a = db.query(schemas.Author).filter(models.Author.name.in_(authors)).all()
+#     return
+
 
 def create_borrow(borrow: schemas.BorrowCreate, db: Session):
     item_ids = [item.item_id for item in borrow.items] # only five items are allowd

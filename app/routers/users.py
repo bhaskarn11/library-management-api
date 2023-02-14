@@ -6,7 +6,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 from ..database import get_db
 from app import schemas
-from app.authentication import Token, get_current_active_user, authenticate_user
+from app.authentication import Token, TokenData, authenticate_user, create_access_token, get_current_user, get_current_active_user
 from app.crud import create_user, get_user_by_id, update_user
 
 router = APIRouter(
@@ -43,10 +43,14 @@ def delete_user():
 
 @router.post("/auth", response_model=Token, tags=["Authentication"])
 def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    return authenticate_user(db, form_data.username, form_data.password)
+    user = authenticate_user(db, form_data.username, form_data.password)
+    if user:
+        token = create_access_token({"sub": form_data.username})
+        return {"access_token": token, "token_type": "bearer"}
+    return HTTPException(status.HTTP_401_UNAUTHORIZED, detail={"message": "Unauthorized Access or User not found"})
 
 
-# @router.get("/me", response_model=schemas.User, tags=["Authentication"])
-# def read_users_me(current_user: schemas.User = Depends(get_current_active_user)):
-#     return current_user
+@router.get("/me", tags=["Authentication"])
+def read_users_me(current_user: schemas.User  = Depends(get_current_active_user)):
+    return current_user
 
