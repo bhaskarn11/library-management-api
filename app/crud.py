@@ -7,6 +7,7 @@ from passlib.context import CryptContext
 
 pwd_context = CryptContext(schemes="bcrypt", deprecated="auto")
 
+
 def get_user_by_username(db: Session, username: str):
     user = db.query(models.User).filter_by(username=username).first()
     return user
@@ -50,7 +51,6 @@ def get_item_by_id(id: int, db: Session):
 
 
 def create_item(item: schemas.ItemCreate, db: Session):
-  
     db_item = models.Item(**item.dict())
     db.add(db_item)
     db.commit()
@@ -58,8 +58,8 @@ def create_item(item: schemas.ItemCreate, db: Session):
     return db_item
 
 
-def update_item(item: schemas.ItemUpdate, id, db: Session):
-    print(item)
+def update_item(item: schemas.ItemUpdate, id: int, db: Session):
+    # print(item)
     db_item = db.query(models.Item).filter_by(id=id).first()
     db_item.title = item.title if item.title else db_item.title
     db_item.description = item.description if item.description else db_item.description
@@ -80,22 +80,12 @@ def remove_item(id: int, db: Session):
     return i
 
 
-# def add_authors(db: Session, authors: List[str]):
-#     a = db.query(schemas.Author).filter(models.Author.name.in_(authors)).all()
-#     return
-
-
-def create_borrow(borrow: schemas.BorrowCreate, db: Session):
-    item_ids = [item.item_id for item in borrow.items] # only five items are allowd
-    items = db.query(models.Item).filter(models.Item.id.in_(item_ids), models.Item.available == True).limit(5)
-    if len(items) != []:
-        t = datetime.utcnow()
-        db_borrow = models.Borrow(borrower_id=borrow.borrower_id, itmes=items)
-        db_borrow.issue_date = t
-        db_borrow.due_date = t + timedelta(days=15)
-        db.add(db_borrow)
-        db.commit()
-        db.refresh(db_borrow)
-        return db_borrow
-    else:
-        raise Exception(message="Items Unavailable")
+def create_borrow(borrow: schemas.BorrowCreate, items, db: Session):
+    t = datetime.utcnow()
+    db_borrow = models.Borrow(borrower_id=borrow.borrower_id, items=items)
+    db_borrow.issue_date = t
+    db_borrow.due_date = t + timedelta(days=15)
+    db.add(db_borrow)
+    db.commit()
+    db.refresh(db_borrow)
+    return db_borrow

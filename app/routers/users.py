@@ -6,11 +6,11 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 from ..database import get_db
 from app import schemas
-from app.authentication import Token, TokenData, authenticate_user, create_access_token, get_current_user, get_current_active_user
+from app.authentication import Token, authenticate_user, create_access_token, get_current_active_user
 from app.crud import create_user, get_user_by_id, update_user
 
 router = APIRouter(
-    prefix="/users",
+    prefix="/users"
 )
 
 
@@ -27,7 +27,7 @@ def get_user(id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/", tags=["Users"])
-def post_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+def post_user(user: schemas.UserCreate, db: Session = Depends(get_db), auth=Depends(get_current_active_user)):
     return create_user(db, user)
 
 
@@ -47,10 +47,10 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
     if user:
         token = create_access_token({"sub": form_data.username})
         return {"access_token": token, "token_type": "bearer"}
-    return HTTPException(status.HTTP_401_UNAUTHORIZED, detail={"message": "Unauthorized Access or User not found"})
+    return HTTPException(status.HTTP_401_UNAUTHORIZED, detail="Unauthorized Access or User not found")
 
 
-@router.get("/me", tags=["Authentication"])
+@router.get("/me", response_model=schemas.User,tags=["Authentication"])
 def read_users_me(current_user: schemas.User  = Depends(get_current_active_user)):
     return current_user
 

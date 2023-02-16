@@ -4,6 +4,7 @@ from datetime import date
 from enum import Enum
 from app.models import ItemTypes
 
+
 class AuthorBase(BaseModel):
     name: str
 
@@ -38,12 +39,14 @@ class Item(ItemBase):
     publish_date: date
     available: bool = True
     author: Union[str, None]
+
     class Config:
         orm_mode = True
 
 
 class BorrowItem(BaseModel):
     item_id: int
+
 
 class BorrowCreate(BaseModel):
     
@@ -55,7 +58,7 @@ class Borrow(BaseModel):
     id: int
     issue_date: date
     due_date: date
-    item: Item
+    items: List[Item]
 
     class Config:
         orm_mode = True
